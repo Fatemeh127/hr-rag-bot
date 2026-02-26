@@ -1,70 +1,43 @@
+from fastapi import HTTPException
+from qdrant_client.models import Filter, FieldCondition, MatchAny
 from app.services.embeddings import get_embedding
 from app.config import qdrant_client, COLLECTION_NAME
-from fastapi import HTTPException
-from qdrant_client.models import Filter, FieldCondition, MatchValue
 
-def retrieve(query: str, role: str, k: int = 3):
-    q_emb = get_embedding(query)
+def retrieve(query: str, user_role: str, k: int = 3):
+    # --- generate embedding ---
+    try:
+        q_emb = get_embedding(query)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Embedding failed: {str(e)}")
 
-    if role == "employee":
-        query_filter = Filter(
-            must=[
-                FieldCondition(
-                    key="doc_type",
-                    match=MatchValue(value="policy")
-                ),
-                
-                FieldCondition(
-                    key="department",
-                    match=MatchValue(value="HR")
-                )
-                
-            ],
-            must_not=[
-                FieldCondition(
-                    key ="doc_type",
-                    match=MatchValue(value="contract")
-                )
-            ]
-        )    
-    elif role == "manager":
-        query_filter = Filter(
-            must=[
-                FieldCondition(
-                    key="department",
-                    match=MatchValue(value="HR")
-                )
-            ],
-            should=[
-                FieldCondition(
-                    key="doc_type",
-                    match=MatchValue(value="policy")
-                ),
-                FieldCondition(
-                    key="doc_type",
-                    match=MatchValue(value="contract")
-                )
-            ]
-        )
-    elif role == "admin":
-        query_filter = None
-
-    else:
-        raise HTTPException(
-            status_code=403,
-            detail="Role not allowed"
-        )
-
-    results = qdrant_client.query_points(
-        collection_name= COLLECTION_NAME,
-        query=q_emb,
-        limit=k,
-        query_filter= query_filter,
-        with_payload=True
+    # --- secure filter based on access_level ---
+    query_filter = Filter(
+        must=[
+            FieldCondition(
+                key="access_level",
+                match=MatchAny(any=[user_role])
+            )
+        ]
     )
 
+    # --- vector search ---
+    try:
+        results = qdrant_client.query_points(
+            collection_name=COLLECTION_NAME,
+            query=q_emb,
+            limit=k,
+            query_filter=query_filter,
+            with_payload=True
+        )
+          
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Vector search failed: {str(e)}")
+
+    
+    # --- return text safely ---
     return [
-    point.payload.get("text", "")
-    for point in results.points
-    if point.payload
-]
+        point.payload.get("text", "")
+        for point in results.points
+        if point.payload
+    ]
+

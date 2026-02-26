@@ -1,0 +1,20 @@
+{
+  "doc_001": {
+    "file_path": "hr_policy_sample.pdf",
+    "doc_type": "policy",
+    "access_level": ["employee", "manager", "admin"],
+    "department": "HR"
+  },
+  "doc_002": {
+    "file_path": "file1.pdf",
+    "doc_type": "contract",
+    "access_level": ["manager", "admin"],
+    "department": "HR"
+  },
+  "doc_003": {
+    "file_path": "file2.pdf",
+    "doc_type": "contract",
+    "access_level": ["admin"],
+    "department": "HR"
+  }
+}

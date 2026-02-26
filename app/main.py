@@ -19,7 +19,7 @@ def ask_rag(
     
     context = retrieve(
         query=data.question,
-        role=role
+        user_role=role
         )
     answer = ask_llm(
         question=data.question,
