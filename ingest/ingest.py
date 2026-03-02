@@ -71,7 +71,7 @@ def ingest():
                 )
             )
 
-    # --- batch upsert برای performance ---
+    # --- batch upsert for performance ---
     qdrant_client.upsert(
         collection_name=COLLECTION_NAME,
         points=points
