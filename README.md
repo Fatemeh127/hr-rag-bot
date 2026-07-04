@@ -174,7 +174,7 @@ Create a `.env` file:
 
 ```env
 OPENAI_API_KEY=your_api_key
-QDRANT_URL=http://localhost:6333
+QDRANT_URL=http://qdrant:6333
 EMPLOYEE_API_KEY=your_key
 MANAGER_API_KEY=your_key
 ADMIN_API_KEY=your_key
